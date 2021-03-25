@@ -13,15 +13,25 @@ class RootPage extends StatefulWidget {
 class _RootPageState extends State<RootPage> {
   @override
   Widget build(BuildContext context) {
-    // final user = Provider.of<User>(context);
+    final user = Provider.of<User>(context);
     return StreamBuilder(
-        stream: authService.user,
+        stream: null, //authService.user
         builder: (context, snapshot) {
-          if (snapshot.hasData) {
-            return HomePage();
-          } else {
-            return LoginPage();
+          print('root page');
+          print(user.uid);
+          // if (user == null) {
+          //   return LoginPage();
+          // }
+          return HomePage();
+          if (snapshot != null) {
+            if (snapshot.hasData) {
+              print(snapshot.data);
+              return HomePage();
+            } else {
+              return LoginPage();
+            }
           }
+          return Container();
         });
   }
 }

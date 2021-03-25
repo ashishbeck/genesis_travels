@@ -18,10 +18,12 @@ class _LoginPageState extends State<LoginPage> {
     if (!showed) {
       showed = true;
       await Future.delayed(Duration(milliseconds: 200));
-      var requestNumber = await SmsAutoFill().hint;
-      if (requestNumber != null) {
-        var number = requestNumber.substring(3, requestNumber.length);
-        phoneController.text = number;
+      if (this.mounted) {
+        var requestNumber = await SmsAutoFill().hint;
+        if (requestNumber != null) {
+          var number = requestNumber.substring(3, requestNumber.length);
+          phoneController.text = number;
+        }
       }
     }
   }
@@ -66,9 +68,9 @@ class _LoginPageState extends State<LoginPage> {
           child: Column(
             children: [
               Container(
-                  // padding: EdgeInsets.only(bottom: 16),
+                  padding: EdgeInsets.symmetric(horizontal: 32, vertical: 64),
                   child: Image.asset(
-                'assets/business_card.jpeg',
+                'assets/logo_travels.png',
                 fit: BoxFit.contain,
               )),
               Container(
@@ -78,7 +80,15 @@ class _LoginPageState extends State<LoginPage> {
                   mainAxisSize: MainAxisSize.max,
                   children: [
                     Text(
-                      'Login with your phone number',
+                      'Driver/Admin Portal',
+                      style: Theme.of(context).textTheme.headline5,
+                      textAlign: TextAlign.center,
+                    ),
+                    SizedBox(
+                      height: 16,
+                    ),
+                    Text(
+                      'Continue with your phone number',
                       style: Theme.of(context).textTheme.headline6,
                       textAlign: TextAlign.center,
                     ),
@@ -96,6 +106,7 @@ class _LoginPageState extends State<LoginPage> {
                           fontSize: 15.0,
                         ),
                       ),
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                       keyboardType: TextInputType.number,
                       maxLength: 10,
                       maxLengthEnforcement: MaxLengthEnforcement.enforced,

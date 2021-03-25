@@ -5,7 +5,7 @@ description: Genesis Travels app for drivers and admin
 # pub.dev using `pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
-version: 1.0.0+1
+version: 0.1.0
 
 environment:
   sdk: ">=2.7.0 <3.0.0"
@@ -17,6 +17,11 @@ dependencies:
   firebase_auth: ^1.0.1
   cloud_firestore: ^1.0.1
   provider: ^5.0.0
+  rxdart: ^0.26.0
+  flutter_spinkit: ^5.0.0
+  url_launcher: ^6.0.2
+  auto_size_text: ^3.0.0-nullsafety.0
+  date_format: ^2.0.2
 
   sms_autofill:
     git:
@@ -30,6 +35,17 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  flutter_launcher_icons: ^0.9.0
+  flutter_native_splash: ^1.1.2
+
+flutter_icons:
+  android: true
+  ios: true
+  remove_alpha_ios: true
+  image_path: "assets/icon.png"
+flutter_native_splash:
+  color: "#E31E24"
+  image: assets/ic_image.png
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

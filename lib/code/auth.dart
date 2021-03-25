@@ -39,16 +39,19 @@ class AuthService {
         });
     _auth.verifyPhoneNumber(
         phoneNumber: '+91$number',
-        verificationCompleted: (AuthCredential credential) async {
+        timeout: Duration(seconds: 60),
+        verificationCompleted: (PhoneAuthCredential credential) {
+          print('auto verified?');
           verifyUser(context, credential);
         },
         verificationFailed: (FirebaseAuthException exception) {
           print('verificationFailed: $exception');
           Navigator.pop(context);
-          AlertDialog dialog = new AlertDialog(content: Text('The phone number was invalid. Please try again'));
+          AlertDialog dialog = new AlertDialog(content: Text(exception.message));
           showDialog(context: context, builder: (context) => dialog);
         },
         codeSent: (String verificationId, [int forceResendingToken]) {
+          print('code sent');
           TextEditingController _codeController = new TextEditingController();
           bool disposed = false;
           bool submitted = false;
@@ -80,35 +83,38 @@ class AuthService {
                           ),
                           showLoading ? customLoadingModule(submitted ? 'Verifying' : 'Detecting OTP') : SizedBox.shrink(),
                           Padding(padding: EdgeInsets.only(bottom: 8)),
-                          PinInputTextField(
-                            controller: _codeController,
-                            decoration: UnderlineDecoration(
-                              textStyle: TextStyle(fontSize: 20, color: appColor),
-                              colorBuilder: FixedColorBuilder(appColor),
-                            ),
-                            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                            onChanged: (code) async {
-                              if (code.length == 6 && !disposed) {
-                                setState(() {
-                                  submitted = true;
-                                  showLoading = true;
-                                });
-                                FocusScope.of(context).unfocus();
-                                try {
-                                  AuthCredential credential =
-                                      PhoneAuthProvider.credential(verificationId: verificationId, smsCode: code);
-                                  verifyUser(context, credential);
-                                } catch (e) {
-                                  // Navigator.pop(context);
-                                  if (!disposed) {
-                                    setState(() => showLoading = false);
-                                    _codeController.text = '';
-                                    AlertDialog dialog = new AlertDialog(content: new Text('Wrong OTP entered, try again'));
-                                    showDialog(context: context, builder: (context) => dialog);
+                          Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 16),
+                            child: PinInputTextField(
+                              controller: _codeController,
+                              decoration: UnderlineDecoration(
+                                textStyle: TextStyle(fontSize: 20, color: appColor),
+                                colorBuilder: FixedColorBuilder(appColor),
+                              ),
+                              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                              onChanged: (code) async {
+                                if (code.length == 6 && !disposed) {
+                                  setState(() {
+                                    submitted = true;
+                                    showLoading = true;
+                                  });
+                                  FocusScope.of(context).unfocus();
+                                  try {
+                                    PhoneAuthCredential credential =
+                                        PhoneAuthProvider.credential(verificationId: verificationId, smsCode: code);
+                                    verifyUser(context, credential);
+                                  } catch (e) {
+                                    // Navigator.pop(context);
+                                    if (!disposed) {
+                                      setState(() => showLoading = false);
+                                      _codeController.text = '';
+                                      AlertDialog dialog = new AlertDialog(content: new Text('Wrong OTP entered, try again'));
+                                      showDialog(context: context, builder: (context) => dialog);
+                                    }
                                   }
                                 }
-                              }
-                            },
+                              },
+                            ),
                           ),
                           Padding(padding: EdgeInsets.only(bottom: 8)),
                         ],
@@ -123,19 +129,41 @@ class AuthService {
         });
   }
 
-  Future verifyUser(BuildContext context, AuthCredential credential) async {
+  Future verifyUser(BuildContext context, PhoneAuthCredential credential) async {
     (await _auth.signInWithCredential(credential)).user;
     Navigator.pop(context);
   }
 
-  void updateUserData(User user, String name) async {
+  Future updateUserData(User user, String displayName) async {
     DocumentReference ref = _db.doc('users/${user.uid}');
-    ref.set({
+    user.updateProfile(displayName: displayName);
+    var result = await ref.set({
       'uid': user.uid,
       'phoneNumber': user.phoneNumber,
-      'displayName': name,
+      'displayName': displayName,
       'lastSeen': FieldValue.serverTimestamp()
     }, SetOptions(merge: true));
+    return result;
+  }
+
+  Future<String> getUserData(User user) async {
+    String displayName;
+    await _db.collection('users').doc(user.uid).get().then((doc){
+      if(doc.exists && user.displayName != null){
+        displayName = doc.get('displayName');
+      }
+    });
+    return displayName;
+  }
+
+  Future<bool> checkIfAdmin(String phoneNumber) async {
+    bool isAdmin = false;
+    await _db.collection('admins').doc(phoneNumber).get().then((doc){
+      if(doc.exists){
+        isAdmin = true;
+      }
+    });
+    return isAdmin;
   }
 
   Future signOut() async {

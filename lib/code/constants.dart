@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 
-Color appColor = Colors.deepOrange;
+Color appColor = Color(0xffE31E24);
 Color appWhite = Color(0xfff5f5f5);
 Color appGrey = Colors.grey;
 
 RoundedRectangleBorder roundShape = RoundedRectangleBorder(borderRadius: BorderRadius.circular(30.0));
+RoundedRectangleBorder taskShape = RoundedRectangleBorder(borderRadius: BorderRadius.circular(15.0));
+RoundedRectangleBorder appBarShape = RoundedRectangleBorder(borderRadius: BorderRadius.vertical(bottom: Radius.circular(30)));
 RoundedRectangleBorder bottomSheetShape =
     RoundedRectangleBorder(borderRadius: BorderRadius.only(topLeft: Radius.circular(10), topRight: Radius.circular(10)));
 
@@ -17,23 +19,24 @@ InputDecoration textFieldDecoration = new InputDecoration(
     ),
   ),
   enabledBorder: OutlineInputBorder(
-    borderSide: BorderSide(color: appColor, width: 2.0),
+    borderSide: BorderSide(width: 2.0),
     borderRadius: const BorderRadius.all(
       const Radius.circular(30.0),
     ),
   ),
   focusedErrorBorder: OutlineInputBorder(
-    borderSide: BorderSide(color: Colors.redAccent, width: 2.0),
+    borderSide: BorderSide(color: Colors.green, width: 2.0),
     borderRadius: const BorderRadius.all(
       const Radius.circular(30.0),
     ),
   ),
   errorBorder: OutlineInputBorder(
-    borderSide: BorderSide(color: Colors.red, width: 2.0),
+    borderSide: BorderSide(color: Colors.green, width: 2.0),
     borderRadius: const BorderRadius.all(
       const Radius.circular(30.0),
     ),
   ),
+  errorStyle: TextStyle(color: Colors.green),
   filled: true,
   fillColor: appWhite,
   counterText: ""
