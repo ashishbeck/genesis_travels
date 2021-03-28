@@ -9,6 +9,7 @@ import 'package:genesis_travels/code/custom_widgets.dart';
 import 'package:genesis_travels/code/models.dart';
 import 'package:genesis_travels/screen/contact_admin.dart';
 import 'package:genesis_travels/screen/new_task.dart';
+import 'package:genesis_travels/screen/task_item.dart';
 import 'package:provider/provider.dart';
 import 'package:rxdart/subjects.dart';
 
@@ -20,13 +21,14 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   bool checkingUser = false;
   bool isAdmin;
+  bool isAvailable = true;
   TabController tabController;
   List<Widget> tabsList = [];
   List<Widget> tabViewsList = [];
   List<Tasks> allTasks = [];
   List<Tasks> activeTasks = [];
   List<Tasks> oldTasks = [];
-  List<MyTasks> myTasks = [];
+  List<Tasks> myTasks = [];
   Timer periodicTimer;
   final _streamController = BehaviorSubject();
 
@@ -59,18 +61,16 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     print('building?');
     final user = Provider.of<User>(context);
-    // final userModel = Provider.of<UserModel>(context);
-    print('building user ${user.phoneNumber}');
+    final userModel = Provider.of<UserModel>(context);
     if (user != null && !checkingUser) {
       // print('user uid is ${user.uid} and ${user.phoneNumber} and meta data is ${user.providerData}');
       checkingUser = true;
       authService.getUserData(user).then((value) async {
         if (value == null) await customFunctions.enterDisplayName(context, user);
         isAdmin = await authService.checkIfAdmin(user.phoneNumber);
+        isAdmin = false;
         print('admin mode is $isAdmin');
-        setState(() {
-
-        });
+        setState(() {});
       });
     }
 
@@ -90,18 +90,26 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
               padding: const EdgeInsets.all(16.0),
               child: Image.asset(
                 'assets/logo_travels.png',
-                fit: BoxFit.contain,),
+                fit: BoxFit.contain,
+              ),
             ),
-            user != null ? ListTile(
-              title: Text(user.displayName ?? ""),
-              subtitle: Text(user.phoneNumber),
-            ) : SizedBox.shrink(),
+            user != null
+                ? ListTile(
+                    title: Text(userModel?.displayName ?? ""),
+                    subtitle: Text(userModel?.phoneNumber ?? ""),
+                  )
+                : SizedBox.shrink(),
             Divider(
               thickness: 2,
             ),
-            drawerItem(Icons.phone, 'Contact Admin', onTap: () =>
-                Navigator.push(context, new MaterialPageRoute(builder: (context) => ContactAdminPage(isAdmin: isAdmin,)))),
-            drawerItem(Icons.power_settings_new, 'Logout', onTap: (){
+            drawerItem(Icons.phone, 'Contact Admin',
+                onTap: () => Navigator.push(
+                    context,
+                    new MaterialPageRoute(
+                        builder: (context) => ContactAdminPage(
+                              isAdmin: isAdmin,
+                            )))),
+            drawerItem(Icons.power_settings_new, 'Logout', onTap: () {
               AlertDialog dialog = new AlertDialog(
                 content: new Text("Are you sure you want to log out?"),
                 actions: [
@@ -123,7 +131,11 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
             Spacer(),
             AboutListTile(
               icon: Icon(Icons.info),
-              applicationIcon: Image.asset('assets/icon.png', width: 50, height: 50,),
+              applicationIcon: Image.asset(
+                'assets/icon.png',
+                width: 50,
+                height: 50,
+              ),
               applicationLegalese: 'Copyright Genesis Travels',
               applicationName: 'Genesis Travels',
               applicationVersion: '1.0.0',
@@ -154,7 +166,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
           itemCount: tasks.length,
           itemBuilder: (context, index) {
             final task = tasks[index];
-            return taskItem(task, user, isAdmin: isAdmin);
+            return TaskItem(task, user, isAdmin: isAdmin);
             // return ListTile(
             //   title: Text('${task.from} to ${task.destination}'),
             //   subtitle: Text('${task.customerNumber} - ${task.customerName}'),
@@ -162,53 +174,55 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
           });
     }
 
+    Widget buildFAB() {
+      return isAdmin ? FloatingActionButton(
+        backgroundColor: appColor,
+        child: Icon(Icons.add),
+        onPressed: () {
+          Navigator.push(context, new MaterialPageRoute(builder: (context) => NewTask()));
+        },
+      ) : FloatingActionButton.extended(
+        label: Text(isAvailable ? 'Available' : 'Offline'),
+        icon: Icon(isAvailable ? Icons.check_circle : Icons.cancel),
+        backgroundColor: isAvailable ? appColor : Colors.black,
+        onPressed: (){},
+      );
+    }
+
     Widget buildBody() {
       if (isAdmin == null) return customLoadingScreen('Initializing..');
+      DateTime now = DateTime.now();
       allTasks = Provider.of<List<Tasks>>(context) ?? [];
+      if (allTasks.isNotEmpty) {
+        activeTasks = allTasks.where((element) => (element.fromDate.millisecondsSinceEpoch > now.millisecondsSinceEpoch)).toList() ?? [];
+      }
+      if (isAdmin) {
+        if (allTasks.isNotEmpty) {
+          oldTasks = allTasks.where((element) => element.fromDate.millisecondsSinceEpoch < now.millisecondsSinceEpoch).toList() ?? [];
+        }
+        tabsList = [tab('Active Tasks'), tab('Old Tasks')];
+        tabViewsList = [tabView(activeTasks), tabView(oldTasks)];
+      } else {
+        if (userModel != null) {
+          myTasks = allTasks.where((element) => userModel.myTasks.contains(element.taskID)).toList();
+        }
+        tabsList = [tab('Active Tasks'), tab('My Tasks')];
+        tabViewsList = [tabView(activeTasks), tabView(myTasks)];
+      }
       return StreamBuilder(
           stream: _streamController.stream,
           builder: (context, snapshot) {
-            if (isAdmin) {
-              DateTime now = DateTime.now();
-              if (allTasks.isNotEmpty) {
-                activeTasks = allTasks.where((element) => element.fromDate.millisecondsSinceEpoch > now.millisecondsSinceEpoch).toList() ?? [];
-                oldTasks = allTasks.where((element) => element.fromDate.millisecondsSinceEpoch < now.millisecondsSinceEpoch).toList() ?? [];
-              }
-              tabsList = [tab('Active Tasks'), tab('Old Tasks')];
-              tabViewsList = [tabView(activeTasks), tabView(oldTasks)];
-              return Column(
-                children: [
-                  TabBar(
-                      controller: tabController,
-                      unselectedLabelColor: Colors.grey,
-                      indicatorColor: appColor,
-                      labelColor: appColor,
-                      tabs: tabsList),
-                  Expanded(child: TabBarView(controller: tabController, children: tabViewsList))
-                ],
-              );
-            } else if (!isAdmin) {
-              DateTime now = DateTime.now();
-              if (allTasks.isNotEmpty) {
-                activeTasks = allTasks.where((element) => (element.fromDate.millisecondsSinceEpoch > now.millisecondsSinceEpoch)).toList() ??
-                    [];
-              }
-              myTasks = Provider.of<List<MyTasks>>(context) ?? [];
-              tabsList = [tab('Active Tasks'), tab('My Tasks')];
-              tabViewsList = [tabView(activeTasks), tabView(myTasks)];
-              return Column(
-                children: [
-                  TabBar(
-                      controller: tabController,
-                      unselectedLabelColor: Colors.grey,
-                      indicatorColor: appColor,
-                      labelColor: appColor,
-                      tabs: tabsList),
-                  Expanded(child: TabBarView(controller: tabController, children: tabViewsList))
-                ],
-              );
-            }
-            return customLoadingScreen('Initializing..');
+            return Column(
+              children: [
+                TabBar(
+                    controller: tabController,
+                    unselectedLabelColor: Colors.grey,
+                    indicatorColor: appColor,
+                    labelColor: appColor,
+                    tabs: tabsList),
+                Expanded(child: TabBarView(controller: tabController, children: tabViewsList))
+              ],
+            );
           });
     }
 
@@ -221,13 +235,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       drawer: Drawer(
         child: drawer(),
       ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: appColor,
-        child: Icon(Icons.add),
-        onPressed: () {
-          Navigator.push(context, new MaterialPageRoute(builder: (context) => NewTask()));
-        },
-      ),
+      floatingActionButton: isAdmin != null ? buildFAB() : SizedBox.shrink(), //![null, false].contains(isAdmin)
       body: buildBody(),
       // body: SingleChildScrollView(
       //   child: Column(

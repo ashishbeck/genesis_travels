@@ -37,7 +37,7 @@ class MyApp extends StatelessWidget {
         ),
         StreamProvider<UserModel>.value(
           initialData: null,
-          value: authService.user.transform(FlatMapStreamTransformer<User, UserModel>(
+          value: AuthService().user.transform(FlatMapStreamTransformer<User, UserModel>(
             (user) => DatabaseService(uid: user.uid).userData,
           )),
           catchError: (ctx, e) {
@@ -53,15 +53,15 @@ class MyApp extends StatelessWidget {
             throw(a);
           },
         ),
-        StreamProvider<List<MyTasks>>.value(
-            initialData: null,
-            value: authService.user.transform(FlatMapStreamTransformer<User, List<MyTasks>>(
-              (user) => DatabaseService(uid: user.uid).myTasks,
-            )),
-          catchError: (ctx, e) {
-            print('error from myTasks provider');
-            throw(e);
-          },),
+        // StreamProvider<List<MyTasks>>.value(
+        //     initialData: null,
+        //     value: authService.user.transform(FlatMapStreamTransformer<User, List<MyTasks>>(
+        //       (user) => DatabaseService(uid: user.uid).myTasks,
+        //     )),
+        //   catchError: (ctx, e) {
+        //     print('error from myTasks provider');
+        //     throw(e);
+        //   },),
       ],
       child: MaterialApp(
         title: 'Genesis Travels',

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:genesis_travels/code/auth.dart';
@@ -23,6 +24,7 @@ class _LoginPageState extends State<LoginPage> {
         if (requestNumber != null) {
           var number = requestNumber.substring(3, requestNumber.length);
           phoneController.text = number;
+          requestOTP();
         }
       }
     }
@@ -136,7 +138,24 @@ class _LoginPageState extends State<LoginPage> {
                                 'Login',
                                 style: TextStyle(color: appWhite, fontSize: 18),
                               ))),
-                    )
+                    ),
+                    kDebugMode ? Container(
+                      width: width,
+                      padding: EdgeInsets.only(top: 8),
+                      child: TextButton(
+                          style: ButtonStyle(
+                              backgroundColor: MaterialStateProperty.all<Color>(appColor),
+                              shape: MaterialStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(30.0)))),
+                          onPressed: () {
+                            authService.localSignIn();
+                          },
+                          child: Container(
+                              padding: EdgeInsets.symmetric(vertical: 4),
+                              child: Text(
+                                'Local Login',
+                                style: TextStyle(color: appWhite, fontSize: 18),
+                              ))),
+                    ) : SizedBox.shrink(),
                   ],
                 ),
               ),

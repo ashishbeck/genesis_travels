@@ -9,12 +9,26 @@ import 'package:sms_autofill/sms_autofill.dart';
 AuthService authService = AuthService();
 
 class AuthService {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _db = FirebaseFirestore.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;//..useEmulator('http://localhost:9099');
+  final FirebaseFirestore _db = FirebaseFirestore.instance;//..settings = Settings(host: '10.0.2.2:8080', sslEnabled: false);
 
   Stream<User> user;
   AuthService() {
     user = _auth.authStateChanges();
+  }
+
+  Future localSignIn() async {
+    print('debug login');
+    try {
+      await _auth.signInWithEmailAndPassword(email: 'test@test.com', password: 'asdf1234').catchError((onError){
+        print('asd');
+        print(onError);
+      });
+    } catch(e) {
+      print('error is $e');
+      throw(e);
+    }
+    print('done?');
   }
 
   Future signInWithNumber(BuildContext context, String number) async {
@@ -157,6 +171,7 @@ class AuthService {
   }
 
   Future<bool> checkIfAdmin(String phoneNumber) async {
+    phoneNumber = phoneNumber.replaceFirst('+', '');
     bool isAdmin = false;
     await _db.collection('admins').doc(phoneNumber).get().then((doc){
       if(doc.exists){

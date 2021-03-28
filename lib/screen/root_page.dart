@@ -18,10 +18,9 @@ class _RootPageState extends State<RootPage> {
         stream: null, //authService.user
         builder: (context, snapshot) {
           print('root page');
-          print(user.uid);
-          // if (user == null) {
-          //   return LoginPage();
-          // }
+          if (user == null) {
+            return LoginPage();
+          }
           return HomePage();
           if (snapshot != null) {
             if (snapshot.hasData) {

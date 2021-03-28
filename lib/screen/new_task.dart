@@ -205,6 +205,7 @@ class _NewTaskState extends State<NewTask> {
                               );
                               await customFunctions.submitTask(newTask);
                               Navigator.pop(context);
+                              Navigator.pop(context);
                             },
                             child: Text('Submit')),
                       ],

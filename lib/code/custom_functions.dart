@@ -6,12 +6,13 @@ import 'package:genesis_travels/code/constants.dart';
 import 'package:genesis_travels/code/custom_widgets.dart';
 import 'package:genesis_travels/code/models.dart';
 import 'package:genesis_travels/screen/contact_admin.dart';
+import 'package:uuid/uuid.dart';
 
 CustomFunctions customFunctions = CustomFunctions();
 
 class CustomFunctions {
 
-  FirebaseFirestore _db = FirebaseFirestore.instance;
+  final FirebaseFirestore _db = FirebaseFirestore.instance;//..settings = Settings(host: '10.0.2.2:8080', sslEnabled: false);
 
   Future enterDisplayName(BuildContext context, User user) async {
     // await Future.delayed(Duration(milliseconds: 200));
@@ -92,13 +93,20 @@ class CustomFunctions {
       'takenBy': user.uid,
       'driverNumber': user.phoneNumber,
       'driverName': user.displayName,
-    },);
-    return;
+    },).then((value) {
+      print('saving ot myTasks');
+      _db.doc('users/${user.uid}').update({
+        'myTasks': FieldValue.arrayUnion([taskID])
+      });
+    });
   }
 
   Future submitTask(Tasks newTask) async {
-    CollectionReference ref = _db.collection('tasks');
-    await ref.add({
+    var uuid = Uuid();
+    String taskID = uuid.v4();
+    DocumentReference ref = _db.collection('tasks').doc(taskID);
+    await ref.set({
+      'taskID': taskID,
       'created': newTask.created,
       'customerName': newTask.customerName,
       'customerNumber': newTask.customerNumber,
@@ -107,7 +115,7 @@ class CustomFunctions {
       'destination': newTask.destination,
       'fromDate': newTask.fromDate,
       'toDate': newTask.toDate
-    },).then((DocumentReference value) => print('value from submission is ${value.id}'));
+    },);
     return;
   }
 }

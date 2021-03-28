@@ -38,7 +38,7 @@ class _ContactAdminPageState extends State<ContactAdminPage> {
             itemCount: admins.length,
             itemBuilder: (context, index){
               return ListTile(
-                leading: Icon(Icons.contact_phone, color: appColor,),
+                leading: Icon(Icons.phone, color: appColor,),
                 title: Text(admins[index].name ?? ""),
                 trailing: Text(admins[index].number ?? ""),
                 onTap: () async {

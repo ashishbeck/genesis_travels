@@ -3,8 +3,9 @@ class UserModel {
   final String displayName;
   final String phoneNumber;
   final DateTime lastSeen;
+  final List myTasks;
 
-  UserModel({this.uid, this.displayName, this.phoneNumber, this.lastSeen});
+  UserModel({this.uid, this.displayName, this.phoneNumber, this.lastSeen, this.myTasks});
 }
 
 class Tasks {
