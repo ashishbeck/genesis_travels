@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -9,6 +10,7 @@ import 'package:genesis_travels/code/auth.dart';
 import 'package:genesis_travels/code/constants.dart';
 import 'package:genesis_travels/code/database_streams.dart';
 import 'package:genesis_travels/code/models.dart';
+import 'package:genesis_travels/code/notification_handler.dart';
 import 'package:genesis_travels/screen/root_page.dart';
 import 'package:provider/provider.dart';
 import 'package:rxdart/transformers.dart';
@@ -18,7 +20,22 @@ void main() async {
   await Firebase.initializeApp();
   GestureBinding.instance.resamplingEnabled = true;
   SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.light);
+  notificationHandler.initNotifications();
+  FirebaseMessaging.onBackgroundMessage(backgroundHandler);
+
   runApp(MyApp());
+}
+
+Future backgroundHandler (RemoteMessage message) async {
+  await Firebase.initializeApp();
+  print('got some bg message\n$message');
+  if (message.data != null) {
+    Map data = message.data;
+    print('message while on background');
+    print(data);
+    ReceivedNotification notification = ReceivedNotification(data['id'], data['title'], data['body']);
+    NotificationHandler().showNotification(notification);
+  }
 }
 
 class MyApp extends StatelessWidget {

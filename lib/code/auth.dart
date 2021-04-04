@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:genesis_travels/code/constants.dart';
 import 'package:genesis_travels/code/custom_widgets.dart';
+import 'package:genesis_travels/code/notification_handler.dart';
 import 'package:sms_autofill/sms_autofill.dart';
 
 AuthService authService = AuthService();
@@ -144,8 +145,11 @@ class AuthService {
   }
 
   Future verifyUser(BuildContext context, PhoneAuthCredential credential) async {
-    (await _auth.signInWithCredential(credential)).user;
     Navigator.pop(context);
+    (await _auth.signInWithCredential(credential)).user;
+    NotificationHandler().performHandshake().then((value) {
+      NotificationHandler().subscribeToTopic('tasks');
+    });
   }
 
   Future updateUserData(User user, String displayName) async {
@@ -173,9 +177,11 @@ class AuthService {
   Future<bool> checkIfAdmin(String phoneNumber) async {
     phoneNumber = phoneNumber.replaceFirst('+', '');
     bool isAdmin = false;
+    // NotificationHandler().subscribeToTopic('tasks');
     await _db.collection('admins').doc(phoneNumber).get().then((doc){
       if(doc.exists){
         isAdmin = true;
+        NotificationHandler().unsubscribeFromTopic('tasks');
       }
     });
     return isAdmin;

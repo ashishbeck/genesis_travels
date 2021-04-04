@@ -5,8 +5,11 @@ import 'package:flutter/services.dart';
 import 'package:genesis_travels/code/constants.dart';
 import 'package:genesis_travels/code/custom_functions.dart';
 import 'package:genesis_travels/code/models.dart';
+import 'package:genesis_travels/screen/task_item.dart';
 
 class NewTask extends StatefulWidget {
+  final Tasks oldTask;
+  NewTask({this.oldTask});
   @override
   _NewTaskState createState() => _NewTaskState();
 }
@@ -22,6 +25,22 @@ class _NewTaskState extends State<NewTask> {
   DateTime toDate;
   // String toDate;
   String price;
+  Tasks oldTask;
+
+  @override
+  void initState() {
+    super.initState();
+    oldTask = widget.oldTask;
+    if (oldTask != null) {
+      customerName = oldTask.customerName;
+      customerNumber = oldTask.customerNumber;
+      from = oldTask.from;
+      destination = oldTask.destination;
+      fromDate = oldTask.fromDate;
+      toDate = oldTask.toDate;
+      price = oldTask.price;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -81,8 +100,33 @@ class _NewTaskState extends State<NewTask> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('New Task'),
+        title: Text(oldTask != null ? 'Edit Task' : 'New Task'),
         centerTitle: true,
+        actions: oldTask != null
+            ? [
+                IconButton(
+                  icon: Icon(Icons.delete),
+                  tooltip: 'Delete Task',
+                  onPressed: () async {
+                    Widget dialog = AlertDialog(
+                      title: Text('Delete Task'),
+                      content: Text('Are you sure you want to delete this task?'),
+                      actions: [
+                        TextButton(onPressed: () => Navigator.pop(context), child: Text('No')),
+                        TextButton(
+                            onPressed: () async {
+                              Navigator.pop(context);
+                              await customFunctions.deleteTask(oldTask.taskID);
+                              Navigator.pop(context);
+                            },
+                            child: Text('Yes')),
+                      ],
+                    );
+                    showDialog(context: context, builder: (context) => dialog);
+                  },
+                )
+              ]
+            : [],
       ),
       body: GestureDetector(
         onTap: () {
@@ -95,6 +139,7 @@ class _NewTaskState extends State<NewTask> {
             child: ListView(
               children: [
                 TextFormField(
+                  initialValue: customerName,
                   decoration: textFieldDecoration.copyWith(labelText: 'Customer Name'),
                   keyboardType: TextInputType.name,
                   textCapitalization: TextCapitalization.words,
@@ -110,6 +155,7 @@ class _NewTaskState extends State<NewTask> {
                     Expanded(
                       flex: 3,
                       child: TextFormField(
+                        initialValue: customerNumber?.substring(3),
                         decoration: textFieldDecoration.copyWith(labelText: 'Customer Number', prefixText: '+91 '),
                         keyboardType: TextInputType.number,
                         inputFormatters: [FilteringTextInputFormatter.digitsOnly],
@@ -126,6 +172,7 @@ class _NewTaskState extends State<NewTask> {
                     Expanded(
                       flex: 2,
                       child: TextFormField(
+                        initialValue: price,
                         decoration: textFieldDecoration.copyWith(labelText: 'Price', prefixText: '₹ '),
                         keyboardType: TextInputType.number,
                         inputFormatters: [FilteringTextInputFormatter.digitsOnly],
@@ -140,6 +187,7 @@ class _NewTaskState extends State<NewTask> {
                   height: 8,
                 ),
                 TextFormField(
+                  initialValue: from,
                   decoration: textFieldDecoration.copyWith(labelText: 'From Location'),
                   keyboardType: TextInputType.name,
                   textCapitalization: TextCapitalization.words,
@@ -151,6 +199,7 @@ class _NewTaskState extends State<NewTask> {
                   height: 8,
                 ),
                 TextFormField(
+                  initialValue: destination,
                   decoration: textFieldDecoration.copyWith(labelText: 'Destination'),
                   keyboardType: TextInputType.name,
                   textCapitalization: TextCapitalization.words,
@@ -172,14 +221,15 @@ class _NewTaskState extends State<NewTask> {
                     ),
                   ],
                 ),
-                SizedBox(height: 8,),
+                SizedBox(
+                  height: 8,
+                ),
                 ElevatedButton(
-                    style: ButtonStyle(
-                        shape: MaterialStateProperty.all(roundShape)),
-                    child: Container(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Text('Submit'),
-                    ),
+                  style: ButtonStyle(shape: MaterialStateProperty.all(roundShape)),
+                  child: Container(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Text('Submit'),
+                  ),
                   onPressed: () {
                     AlertDialog dialog = new AlertDialog(
                       title: Text('Review Submission'),
@@ -194,16 +244,16 @@ class _NewTaskState extends State<NewTask> {
                         TextButton(
                             onPressed: () async {
                               Tasks newTask = Tasks(
-                                created: DateTime.now().millisecondsSinceEpoch,
-                                customerName: customerName,
-                                customerNumber: customerNumber,
-                                price: price,
-                                from: from,
-                                fromDate: fromDate,
-                                destination: destination,
-                                toDate: toDate
-                              );
-                              await customFunctions.submitTask(newTask);
+                                  created: DateTime.now().millisecondsSinceEpoch,
+                                  customerName: customerName,
+                                  customerNumber: customerNumber,
+                                  price: price,
+                                  from: from,
+                                  fromDate: fromDate,
+                                  destination: destination,
+                                  toDate: toDate);
+                              await customFunctions.submitTask(newTask, oldTask != null ? oldTask.taskID : null);
+                              // print(oldTask.taskID);
                               Navigator.pop(context);
                               Navigator.pop(context);
                             },

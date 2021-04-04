@@ -6,6 +6,7 @@ import 'package:genesis_travels/code/constants.dart';
 import 'package:genesis_travels/code/custom_widgets.dart';
 import 'package:genesis_travels/code/models.dart';
 import 'package:genesis_travels/screen/contact_admin.dart';
+import 'package:package_info/package_info.dart';
 import 'package:uuid/uuid.dart';
 
 CustomFunctions customFunctions = CustomFunctions();
@@ -101,12 +102,12 @@ class CustomFunctions {
     });
   }
 
-  Future submitTask(Tasks newTask) async {
+  Future submitTask(Tasks newTask, String oldTaskID) async {
     var uuid = Uuid();
     String taskID = uuid.v4();
-    DocumentReference ref = _db.collection('tasks').doc(taskID);
+    DocumentReference ref = _db.collection('tasks').doc(oldTaskID ?? taskID);
     await ref.set({
-      'taskID': taskID,
+      'taskID': oldTaskID ?? taskID,
       'created': newTask.created,
       'customerName': newTask.customerName,
       'customerNumber': newTask.customerNumber,
@@ -115,7 +116,24 @@ class CustomFunctions {
       'destination': newTask.destination,
       'fromDate': newTask.fromDate,
       'toDate': newTask.toDate
-    },);
+    }, SetOptions(merge: true)
+    );
+    return;
+  }
+
+  Future deleteTask(String taskID) async {
+    DocumentReference ref = _db.doc('tasks/$taskID');
+    return await ref.delete();
+  }
+
+  Future checkForUpdates() async {
+    PackageInfo packageInfo = await PackageInfo.fromPlatform();
+    double currentVersion = double.parse(packageInfo.version.trim().replaceAll(".", ""));
+    DocumentReference ref = _db.doc('updates/update_info');
+    var snapshot = await ref.get();
+    double newVersion = double.parse(snapshot.get('version').toString().trim().replaceAll(".", ""));
+    String url = snapshot.get('url');
+    if (newVersion > currentVersion) return url;
     return;
   }
 }

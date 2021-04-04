@@ -1,3 +1,5 @@
+import 'package:genesis_travels/code/models.dart';
+import 'package:genesis_travels/screen/new_task.dart';
 import 'package:genesis_travels/screen/root_page.dart';
 
 import 'home.dart';
@@ -10,11 +12,10 @@ import 'package:genesis_travels/code/custom_widgets.dart';
 import 'package:date_format/date_format.dart';
 import 'package:genesis_travels/main.dart';
 import 'package:genesis_travels/screen/contact_admin.dart';
-import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class TaskItem extends StatelessWidget {
-  final dynamic task;
+  final Tasks task;
   final User user;
   final bool isAdmin;
   TaskItem(this.task, this.user, {this.isAdmin = false});
@@ -182,7 +183,7 @@ class TaskItem extends StatelessWidget {
                                 print('e string is ${e.toString()}');
                                 if(e.toString().contains('/permission-denied')) print('no perm');
                                 // Navigator.pop(context);
-                                showDialog(context: context, builder: (builder){
+                                showDialog(context: context, builder: (context){
                                   return AlertDialog(
                                     title: Text('Some Error Occurred'),
                                     content: Text('Looks like someone has already taken this task'),
@@ -218,16 +219,26 @@ class TaskItem extends StatelessWidget {
           shape: taskShape,
           color: appWhite,
           shadows: [BoxShadow(color: Colors.black.withOpacity(0.2), offset: Offset(2, 2), spreadRadius: 1, blurRadius: 4)]),
-      child: Column(
-        children: [
-          statusInfo(),
-          SizedBox(
-            height: 4,
+      child: Material(
+        type: MaterialType.transparency,
+        child: InkWell(
+          onTap: () {
+            if (isAdmin) {
+              Navigator.push(context, new MaterialPageRoute(builder: (context) => NewTask(oldTask: task,)));
+            }
+          },
+          child: Column(
+            children: [
+              statusInfo(),
+              SizedBox(
+                height: 4,
+              ),
+              journeyInfo(),
+              (status == TaskStatus.mine || isAdmin) ? customerInfo() : status != TaskStatus.unavailable ? taskButton() : SizedBox.shrink(),
+              (status != TaskStatus.available && isAdmin) ? driverInfo() : SizedBox.shrink()
+            ],
           ),
-          journeyInfo(),
-          (status == TaskStatus.mine || isAdmin) ? customerInfo() : status != TaskStatus.unavailable ? taskButton() : SizedBox.shrink(),
-          (status != TaskStatus.available && isAdmin) ? driverInfo() : SizedBox.shrink()
-        ],
+        ),
       ),
     );
   }
