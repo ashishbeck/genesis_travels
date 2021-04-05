@@ -102,7 +102,7 @@ class _LoginPageState extends State<LoginPage> {
                       focusNode: textFocus,
                       decoration: textFieldDecoration.copyWith(
                         hintText: 'Phone Number',
-                        prefix: Text("+91 "),
+                        prefix: Text("$countryCode "),
                         prefixStyle: TextStyle(
                           color: Colors.black,
                           fontSize: 15.0,

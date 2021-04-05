@@ -12,9 +12,9 @@ If you wish to use this app for your own personal project then integrate Firebas
 This app is intended for Android users only but you can implement support for iOS users as well.
 Don't forget to import the `google-services.json` file into your project according to the guide. Create a new file called `keys.dart` in the `lib/code` directory and add this line into it
 ```
-String fcmApiKey = [your_api_key];
+String fcmApiKey = "your_api_key";
 ```
-Go to your firebase project console and enter project settings. Select the `Cloud Messaging` tab and copy the server key and replace [your_api_key] with it. This is needed to check if the driver has subscribed to the task topic to receive notifications and update the UI accordingly.
+Go to your firebase project console and enter project settings. Select the `Cloud Messaging` tab and copy the server key and replace `your_api_key` with it. This is needed to check if the driver has subscribed to the task topic to receive notifications and update the UI accordingly.
 
 Implement Cloud Functions in your project by following the guide [here](https://firebase.google.com/docs/functions/get-started). The necessary function is included in the repo so you should simply deploy it to get it up and running.
 

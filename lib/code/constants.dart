@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 Color appColor = Color(0xffE31E24);
 Color appWhite = Color(0xfff5f5f5);
 Color appGrey = Colors.grey;
+String countryCode = "+91";
 
 RoundedRectangleBorder roundShape = RoundedRectangleBorder(borderRadius: BorderRadius.circular(30.0));
 RoundedRectangleBorder taskShape = RoundedRectangleBorder(borderRadius: BorderRadius.circular(15.0));

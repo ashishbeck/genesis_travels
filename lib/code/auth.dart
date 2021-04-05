@@ -53,7 +53,7 @@ class AuthService {
           ));
         });
     _auth.verifyPhoneNumber(
-        phoneNumber: '+91$number',
+        phoneNumber: countryCode + number,
         timeout: Duration(seconds: 60),
         verificationCompleted: (PhoneAuthCredential credential) {
           print('auto verified?');
