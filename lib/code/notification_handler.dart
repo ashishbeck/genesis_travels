@@ -14,14 +14,8 @@ class NotificationHandler {
     await performHandshake();
     initFlutterLocalNotifications();
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      print('got some message\n$message');
-      if (message.data != null) {
-        Map data = message.data;
-        print('message while on foreground');
-        print(data);
-        ReceivedNotification notification = ReceivedNotification(data['id'], data['title'], data['body']);
-        showNotification(notification);
-      }
+      print('message while on foreground\n$message');
+      showNotification(message);
     });
   }
 
@@ -74,33 +68,37 @@ class NotificationHandler {
     );
   }
 
-  showNotification(ReceivedNotification data) async {
-    var activeNotifications = await flutterLocalNotificationsPlugin
-        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
-        .getActiveNotifications() ?? [];
-    String body = data.body;
-    String title = data.title;
-    try {
-      if (activeNotifications.isNotEmpty) {
-        String oldBody = activeNotifications.first.body;
-        int length = oldBody
-            .split("\n")
-            .length;
-        body += "\n" + oldBody;
-        title += "s (${length + 1})";
-      } else {
-        body = data.body;
-      }
-    } catch (e){}
-    print('body is $body');
-    AndroidNotificationDetails androidPlatformChannelSpecifics = AndroidNotificationDetails(
+  showNotification(RemoteMessage message) async {
+    if (message.data != null) {
+      Map data = message.data;
+      ReceivedNotification notification = ReceivedNotification(data['id'], data['title'], data['body']);
+      var activeNotifications = await flutterLocalNotificationsPlugin
+          .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+          .getActiveNotifications() ?? [];
+      String body = notification.body;
+      String title = notification.title;
+      try {
+        if (activeNotifications.isNotEmpty) {
+          String oldBody = activeNotifications.first.body;
+          int length = oldBody
+              .split("\n")
+              .length;
+          body += "\n" + oldBody;
+          title += "s (${length + 1})";
+        } else {
+          body = notification.body;
+        }
+      } catch (e) {}
+      print('body is $body');
+      AndroidNotificationDetails androidPlatformChannelSpecifics = AndroidNotificationDetails(
         'Task Channel ID', 'Task Channel', 'Individual Task Information',
         importance: Importance.max,
         priority: Priority.high,
         showWhen: false,
         styleInformation: BigTextStyleInformation(body),);
-    NotificationDetails platformChannelSpecifics = NotificationDetails(android: androidPlatformChannelSpecifics);
-    await flutterLocalNotificationsPlugin.show(1, title, body, platformChannelSpecifics, payload: data.id);
+      NotificationDetails platformChannelSpecifics = NotificationDetails(android: androidPlatformChannelSpecifics);
+      await flutterLocalNotificationsPlugin.show(1, title, body, platformChannelSpecifics, payload: notification.id);
+    }
   }
 }
 

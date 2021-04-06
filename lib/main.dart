@@ -27,15 +27,8 @@ void main() async {
 }
 
 Future backgroundHandler (RemoteMessage message) async {
-  await Firebase.initializeApp();
-  print('got some bg message\n$message');
-  if (message.data != null) {
-    Map data = message.data;
-    print('message while on background');
-    print(data);
-    ReceivedNotification notification = ReceivedNotification(data['id'], data['title'], data['body']);
-    NotificationHandler().showNotification(notification);
-  }
+  print('message while on background\n$message');
+  NotificationHandler().showNotification(message);
 }
 
 class MyApp extends StatelessWidget {
